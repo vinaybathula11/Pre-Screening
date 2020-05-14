@@ -1,0 +1,64 @@
+class RoomRecord:
+    def __init__(self, room, floor, member, slots):
+        self.room = room
+        self.floor = floor
+        self.member = member
+        self.slots = slots
+
+
+def get_meeting_room(request):
+    room_list = get_rooms()
+    list = request.split(',')
+    member = int(list[0])
+    floor = int(list[1])
+    slot = avail_slots(2, list)
+    match_floor = []
+    for room in room_list:
+        if room.member >= member:
+            i = 0
+            while i < len(room.slots):
+                if room.slots[i] == slot[0] and room.slots[i + 1] == slot[1]:
+                    match_floor.append([room.floor, room.room])
+                i += 2
+
+    return get_close_match(floor, match_floor)
+
+
+def get_close_match(num, obj):
+    match = [abs(num-obj[0][0]), obj[0]]
+    for room in obj:
+        if abs(num-room[0]) < match[0]:
+            match = [abs(num-room[0]), room]
+    return str(match[1][0]) + '.' + str(match[1][1])
+
+
+
+def get_rooms():
+    rooms_list = []
+    rooms = open('rooms.txt', 'r')
+    for room in rooms:
+        details = room.split(',')
+        floor_n_room = details[0].split('.')
+
+        floor = int(floor_n_room[0])
+        room = int(floor_n_room[1])
+        member = int(details[1])
+        rooms_list.append(RoomRecord(room, floor, member, avail_slots(2, details)))
+
+    return rooms_list
+
+
+def avail_slots(index, details):
+    slots = []
+    for slot in range(index, len(details)):
+        time = details[slot].split(':') if ':' in details[slot] else details[slot].split(';')
+        a = int(int(time[0]) * 60 + int(time[1])) / 60
+        slots.append(a)
+    return slots
+
+
+if __name__ == '__main__':
+
+    input_arr = '5,6,9:00,9:15'
+
+    print(get_meeting_room(input_arr))
